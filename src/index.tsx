@@ -19,13 +19,13 @@ root.render(
 const rootElement = document.getElementById('root') as HTMLElement;
 const root = ReactDOM.createRoot(rootElement);
 if (rootElement.hasChildNodes()) {
-    ReactDOM.hydrateRoot(rootElement, <App />);
+  ReactDOM.hydrateRoot(rootElement, <App />);
 } else {
-    root.render(
-        <React.StrictMode>
-            <App />
-        </React.StrictMode>
-    );
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  );
 }
 
 // If you want to start measuring performance in your app, pass a function
