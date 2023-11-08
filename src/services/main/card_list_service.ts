@@ -24,7 +24,7 @@ class CardListService implements ICardListService {
         return CardListService.instance;
     }
 
-    private cards: Card[] | null = [];
+    private cards: Card[] | null = null;
 
     getCards(): Card[] {
         if (this.cards) {
@@ -38,6 +38,7 @@ class CardListService implements ICardListService {
         }
 
         this.cards = [];
+        localStorage.setItem('cards', JSON.stringify(this.cards));
         return this.cards;
     }
 

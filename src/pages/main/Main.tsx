@@ -1,9 +1,9 @@
 import { styled } from 'styled-components';
 
-import { useApp } from '../../hooks/app_provider';
-import TranslationCardView from './views/TranslationCardView';
-
 import MainBackgroundLight from '../../commons/assets/img/main_background_light.png';
+import CardListContainerView from './views/CardListContainerView';
+import { useEffect, useRef } from 'react';
+import { useCardList } from '../../hooks/card_list_provider';
 
 const StyledBackground = styled.div`
     width: 100%;
@@ -15,27 +15,83 @@ const StyledBackground = styled.div`
     background-repeat: no-repeat;
 
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
 
-    overflow-y: scroll;
+    position: relative;
+    overflow: hidden;
 `;
 
+function useScrollCardList() {
+    const cardList = useCardList();
+
+    const scrollEventAvailable = useRef(true);
+
+    useEffect(() => {
+        function handleScroll(event: WheelEvent) {
+            if (!scrollEventAvailable.current) {
+                return;
+            }
+
+            if (event.deltaY < -2) {
+                cardList.scrollUp();
+            } else if (event.deltaY > 2) {
+                cardList.scrollDown();
+            } else {
+                return;
+            }
+
+            scrollEventAvailable.current = false;
+            setTimeout(() => {
+                scrollEventAvailable.current = true;
+            }, 100);
+        }
+
+        function handleKeyDown(event: KeyboardEvent) {
+            if (event.key === 'ArrowUp') {
+                cardList.scrollUp();
+            } else if (event.key === 'ArrowDown') {
+                cardList.scrollDown();
+            }
+        }
+
+        window.addEventListener('wheel', handleScroll);
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('wheel', handleScroll);
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [cardList]);
+}
+
+function useEnterNewCard() {
+    const cardList = useCardList();
+
+    useEffect(() => {
+        function handleKeyDown(event: KeyboardEvent) {
+            // CMD + Enter or CTRL + Enter
+            if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+                cardList.newCard();
+            }
+        }
+
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [cardList]);
+}
+
 function Main() {
-    const app = useApp();
+    useScrollCardList();
+    useEnterNewCard();
 
     return (
         <StyledBackground>
-            {app.cardListStore.translationCardStoreList.map(
-                (translationCardStore) => (
-                    <TranslationCardView
-                        translationCard={translationCardStore}
-                        width={1100}
-                        height={508}
-                    />
-                ),
-            )}
+            <CardListContainerView />
         </StyledBackground>
     );
 }

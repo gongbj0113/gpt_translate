@@ -5,6 +5,8 @@ import TranslationCardStore, {
 } from '../../../stores/translation_card/translation_card_store';
 import { animated, useSpring } from '@react-spring/web';
 import { observer } from 'mobx-react-lite';
+import { useCardList } from '../../../hooks/card_list_provider';
+import { useRef } from 'react';
 
 interface TranslationCardViewProps {
     translationCard: TranslationCardStore;
@@ -19,6 +21,7 @@ const StyledCard = styled.div<{
 }>`
     width: ${(props) => props.width}px;
     height: ${(props) => props.height}px;
+    flex-shrink: 0;
 
     position: relative;
 `;
@@ -159,6 +162,8 @@ function TranslationCardView({
     width,
     height,
 }: TranslationCardViewProps) {
+    const isFirst = useRef(true);
+
     const LeftContentPannel = useSpring({
         width: `${(() => {
             switch (translationCard.state) {
@@ -279,9 +284,32 @@ function TranslationCardView({
             <StyledWhiteBackgroundLayer style={{ ...WhiteBackground }} />
             <StyledLeftContentPannel style={LeftContentPannel}>
                 <textarea
+                    ref={(ref) => {
+                        if (
+                            translationCard.state ===
+                                TranslationCardState.Input &&
+                            isFirst.current &&
+                            ref
+                        ) {
+                            ref?.focus();
+                        }
+                        isFirst.current = false;
+                    }}
                     onChange={(e) =>
                         translationCard.setInputText(e.target.value)
                     }
+                    onKeyDown={(e) => {
+                        // meta + enter, ctrl + enter
+                        if (
+                            (e.metaKey || e.ctrlKey) &&
+                            e.keyCode === 13 &&
+                            translationCard.state === TranslationCardState.Input
+                        ) {
+                            translationCard.translate();
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
+                    }}
                     placeholder="ENTER SOMETHING..."
                     value={translationCard.inputText}
                     readOnly={
@@ -297,7 +325,10 @@ function TranslationCardView({
             <StyledTranslateButton
                 style={TranslateButton}
                 onClick={() => {
-                    if (translationCard.state === TranslationCardState.Input) {
+                    if (
+                        translationCard.state === TranslationCardState.Input &&
+                        translationCard.inputText.trim().length > 0
+                    ) {
                         translationCard.translate();
                     }
                 }}

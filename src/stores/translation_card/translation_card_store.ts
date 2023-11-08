@@ -48,6 +48,12 @@ class TranslationCardStore {
     }
 
     translate() {
+        if (
+            this.state !== TranslationCardState.Input ||
+            this.inputText.trim().length === 0
+        ) {
+            return;
+        }
         this.state = TranslationCardState.Loading;
 
         const translateService = new TranslateService();
