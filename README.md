@@ -1,6 +1,5 @@
 # Try this project
 
-[Go To Site](https://team-bbabam-bbabam.github.io/bbabam-web/)
 
 ## Available Scripts
 
